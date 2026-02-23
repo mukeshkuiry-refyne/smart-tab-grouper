@@ -2,201 +2,332 @@
 <html>
 
 <head>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-        body {
-            width: 280px;
-            padding: 12px;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
-            color: #fff;
-            border-radius: 12px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        }
+    body {
+      width: 320px;
+      padding: 12px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+      color: #fff;
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      max-height: 600px;
+      overflow-y: auto;
+    }
 
-        .header {
-            font-size: 18px;
-            font-weight: 700;
-            text-align: center;
-            margin-bottom: 12px;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-        }
+    body::-webkit-scrollbar { width: 5px; }
+    body::-webkit-scrollbar-track { background: transparent; }
+    body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 10px; }
+    body::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
 
-        .button-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            margin-bottom: 12px;
-        }
+    .header {
+      font-size: 16px;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 10px;
+      letter-spacing: 0.3px;
+    }
 
-        button {
-            padding: 10px 8px;
-            border: none;
-            border-radius: 8px;
-            font-size: 11px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
+    /* ── Feedback ── */
+    .feedback {
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      text-align: center;
+      margin-bottom: 8px;
+      display: none;
+      animation: slideIn .25s ease;
+    }
+    .feedback.show { display: block; }
+    .feedback.success { background: rgba(76,175,80,.18); border: 1px solid rgba(76,175,80,.35); color: #a8d5a8; }
+    .feedback.error   { background: rgba(255,60,60,.18); border: 1px solid rgba(255,60,60,.35); color: #ffaaaa; }
 
-        .btn-primary {
-            background: rgba(255, 255, 255, 0.25);
-            color: #fff;
-            border: 2px solid rgba(255, 255, 255, 0.4);
-            padding: 14px 12px;
-            font-size: 13px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            width: 100%;
-            margin-bottom: 2px;
-        }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
 
-        .btn-primary:hover {
-            background: rgba(255, 255, 255, 0.35);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
-            border-color: rgba(255, 255, 255, 0.6);
-        }
+    /* ── Stats ── */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 4px;
+      margin-bottom: 10px;
+    }
 
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
+    .stat {
+      text-align: center;
+      background: rgba(255,255,255,.06);
+      border-radius: 6px;
+      padding: 6px 2px;
+      border: 1px solid rgba(255,255,255,.1);
+    }
 
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
+    .stat-val {
+      font-size: 14px;
+      font-weight: 700;
+      color: #4a9eff;
+      line-height: 1;
+    }
 
-        .btn-danger {
-            background: rgba(255, 0, 0, 0.3);
-            color: #fff;
-            border: 1px solid rgba(255, 0, 0, 0.4);
-        }
+    .stat-lbl {
+      font-size: 8px;
+      opacity: .55;
+      margin-top: 2px;
+      text-transform: uppercase;
+      letter-spacing: .3px;
+    }
 
-        .btn-danger:hover {
-            background: rgba(255, 0, 0, 0.4);
-        }
+    /* ── Buttons ── */
+    .btn-grid { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
 
-        .secondary-buttons {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 4px;
-        }
+    button {
+      padding: 0;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .15s ease;
+      letter-spacing: .4px;
+      text-transform: uppercase;
+      font-size: 11px;
+    }
+    button:active { transform: scale(.97); }
 
-        .settings-section {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            padding: 10px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
+    .btn-hero {
+      background: linear-gradient(135deg, rgba(74,158,255,.35), rgba(120,80,255,.3));
+      color: #fff;
+      border: 1.5px solid rgba(74,158,255,.45);
+      padding: 13px 12px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .8px;
+      width: 100%;
+    }
+    .btn-hero:hover {
+      background: linear-gradient(135deg, rgba(74,158,255,.5), rgba(120,80,255,.45));
+      box-shadow: 0 4px 14px rgba(74,158,255,.25);
+      border-color: rgba(74,158,255,.7);
+    }
 
-        .setting-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 6px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            font-size: 11px;
-        }
+    .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
 
-        .setting-item:last-child {
-            border-bottom: none;
-        }
+    .btn-sec {
+      background: rgba(255,255,255,.08);
+      color: #ccc;
+      border: 1px solid rgba(255,255,255,.15);
+      padding: 9px 6px;
+      font-size: 10px;
+    }
+    .btn-sec:hover { background: rgba(255,255,255,.15); color: #fff; }
 
-        .setting-label {
-            flex: 1;
-        }
+    .btn-danger {
+      background: rgba(255,50,50,.15);
+      color: #ff9b9b;
+      border: 1px solid rgba(255,50,50,.25);
+      padding: 9px 6px;
+      font-size: 10px;
+    }
+    .btn-danger:hover { background: rgba(255,50,50,.25); color: #ffbbbb; }
 
-        .toggle {
-            width: 36px;
-            height: 18px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 9px;
-            cursor: pointer;
-            position: relative;
-            transition: background 0.3s;
-        }
+    .btn-util {
+      background: rgba(255,190,50,.1);
+      color: #ffd080;
+      border: 1px solid rgba(255,190,50,.2);
+      padding: 9px 6px;
+      font-size: 10px;
+    }
+    .btn-util:hover { background: rgba(255,190,50,.2); color: #ffe0a0; }
 
-        .toggle.active {
-            background: #4caf50;
-        }
+    /* ── Active groups list ── */
+    .groups-section {
+      background: rgba(255,255,255,.05);
+      border-radius: 8px;
+      padding: 8px;
+      border: 1px solid rgba(255,255,255,.1);
+      margin-bottom: 10px;
+      max-height: 140px;
+      overflow-y: auto;
+    }
+    .groups-section::-webkit-scrollbar { width: 4px; }
+    .groups-section::-webkit-scrollbar-thumb { background: rgba(255,255,255,.12); border-radius: 4px; }
 
-        .toggle-switch {
-            position: absolute;
-            width: 14px;
-            height: 14px;
-            background: #fff;
-            border-radius: 50%;
-            top: 2px;
-            left: 2px;
-            transition: left 0.3s;
-        }
+    .section-title {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      opacity: .5;
+      margin-bottom: 6px;
+    }
 
-        .toggle.active .toggle-switch {
-            left: 20px;
-        }
+    .group-row {
+      display: flex;
+      align-items: center;
+      padding: 4px 6px;
+      margin-bottom: 3px;
+      background: rgba(255,255,255,.04);
+      border-radius: 4px;
+      font-size: 11px;
+      gap: 6px;
+    }
 
-        .credit {
-            text-align: center;
-            margin-top: 8px;
-            font-size: 10px;
-            opacity: 0.7;
-        }
+    .group-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
 
-        .credit a:hover {
-            opacity: 1;
-        }
-    </style>
+    .group-label {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      opacity: .85;
+    }
+
+    .group-x {
+      background: none;
+      border: none;
+      color: rgba(255,100,100,.7);
+      font-size: 12px;
+      padding: 0 2px;
+      cursor: pointer;
+      line-height: 1;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+    .group-x:hover { color: #ff6b6b; }
+
+    /* ── Settings ── */
+    .settings {
+      background: rgba(255,255,255,.06);
+      border-radius: 8px;
+      padding: 10px;
+      border: 1px solid rgba(255,255,255,.1);
+      margin-bottom: 8px;
+    }
+
+    .setting-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px 0;
+      font-size: 11px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .setting-row:last-child { border-bottom: none; }
+
+    .toggle {
+      width: 34px;
+      height: 17px;
+      background: rgba(255,255,255,.18);
+      border-radius: 9px;
+      cursor: pointer;
+      position: relative;
+      transition: background .2s;
+      flex-shrink: 0;
+    }
+    .toggle.active { background: #4caf50; }
+    .toggle-knob {
+      position: absolute;
+      width: 13px;
+      height: 13px;
+      background: #fff;
+      border-radius: 50%;
+      top: 2px;
+      left: 2px;
+      transition: left .2s;
+    }
+    .toggle.active .toggle-knob { left: 19px; }
+
+    /* ── Footer ── */
+    .footer {
+      text-align: center;
+      font-size: 9px;
+      opacity: .4;
+      padding-top: 4px;
+    }
+    .footer a { color: #4a9eff; text-decoration: none; }
+    .footer a:hover { opacity: 1; }
+
+    .no-groups {
+      font-size: 10px;
+      opacity: .4;
+      text-align: center;
+      padding: 8px;
+    }
+  </style>
 </head>
 
 <body>
-    <div class="header">Smart Tab Grouper</div>
+  <div class="header">Smart Tab Grouper</div>
 
-    <div class="button-group">
-        <button id="groupNow" class="btn-primary">Group All</button>
-        <div class="secondary-buttons">
-            <button id="groupUngrouped" class="btn-secondary">Group New</button>
-            <button id="ungroupAll" class="btn-danger">Ungroup All</button>
-        </div>
+  <div class="feedback" id="feedback"></div>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-val" id="sTabs">-</div>
+      <div class="stat-lbl">Tabs</div>
     </div>
-
-    <div class="settings-section">
-        <div class="setting-item">
-            <span class="setting-label">Auto Group</span>
-            <div id="toggleAutoGroup" class="toggle active">
-                <div class="toggle-switch"></div>
-            </div>
-        </div>
-        <div class="setting-item">
-            <span class="setting-label">Smart Colors</span>
-            <div id="toggleSmartColoring" class="toggle active">
-                <div class="toggle-switch"></div>
-            </div>
-        </div>
-        <div class="setting-item">
-            <span class="setting-label">Collapse</span>
-            <div id="toggleCollapsed" class="toggle">
-                <div class="toggle-switch"></div>
-            </div>
-        </div>
+    <div class="stat">
+      <div class="stat-val" id="sGroups">-</div>
+      <div class="stat-lbl">Groups</div>
     </div>
-
-    <div class="credit">
-        Created by <a href="https://in.linkedin.com/in/mukeshkuiry" target="_blank"
-            style="color: #4a9eff; text-decoration: none;">Mukesh Kuiry</a>
+    <div class="stat">
+      <div class="stat-val" id="sGrouped">-</div>
+      <div class="stat-lbl">Grouped</div>
     </div>
+    <div class="stat">
+      <div class="stat-val" id="sUngrouped">-</div>
+      <div class="stat-lbl">Loose</div>
+    </div>
+  </div>
 
-    <script src="popup.js" type="module"></script>
+  <div class="btn-grid">
+    <button id="btnGroupAll" class="btn-hero">Group All Tabs</button>
+    <div class="row-2">
+      <button id="btnGroupNew" class="btn-sec">Group New</button>
+      <button id="btnUngroupAll" class="btn-danger">Ungroup All</button>
+    </div>
+    <div class="row-2">
+      <button id="btnSort" class="btn-util">Sort Groups</button>
+      <button id="btnDupes" class="btn-util">Close Dupes</button>
+    </div>
+  </div>
+
+  <div id="groupsWrap" class="groups-section" style="display:none">
+    <div class="section-title">Active Groups</div>
+    <div id="groupsList"></div>
+  </div>
+
+  <div class="settings">
+    <div class="section-title">Settings</div>
+    <div class="setting-row">
+      <span>Auto Group</span>
+      <div id="tAutoGroup" class="toggle"><div class="toggle-knob"></div></div>
+    </div>
+    <div class="setting-row">
+      <span>Smart Colors</span>
+      <div id="tColors" class="toggle"><div class="toggle-knob"></div></div>
+    </div>
+    <div class="setting-row">
+      <span>Collapse New Groups</span>
+      <div id="tCollapse" class="toggle"><div class="toggle-knob"></div></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    by <a href="https://in.linkedin.com/in/mukeshkuiry" target="_blank">Mukesh Kuiry</a>
+  </div>
+
+  <script src="popup.js"></script>
 </body>
-
 </html>
