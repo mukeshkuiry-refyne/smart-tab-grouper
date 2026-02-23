@@ -263,7 +263,6 @@ const HOSTNAME_ALIASES = {
   "web.archive.org": "Wayback",
   localhost: "Localhost",
   "127.0.0.1": "Localhost",
-  "chatgpt.com": "ChatGPT",
   "about.google": "Google About",
   "apple.com": "Apple",
   "support.apple.com": "Apple Support",
@@ -519,7 +518,10 @@ async function groupUngroupedTabs() {
 
   let count = 0;
   for (const [hostname, ids] of Object.entries(buckets)) {
-    if (ids.length >= minTabs) {
+    // If a group already exists for this hostname, add even a single tab
+    const perWindow = groupCache.get(hostname);
+    const hasExistingGroup = perWindow && perWindow.size > 0;
+    if (ids.length >= minTabs || hasExistingGroup) {
       await getOrCreateGroup(hostname, ids);
       count += ids.length;
     }
@@ -547,7 +549,7 @@ async function sortGroupsByDomain() {
 
 async function closeDuplicateTabs() {
   const tabs = await chrome.tabs.query({});
-  const seen = new Set();
+  const seen = new Map(); // key -> tabId (keeps active or first)
   const dupes = [];
 
   for (const tab of tabs) {
@@ -559,8 +561,17 @@ async function closeDuplicateTabs() {
     } catch {
       key = tab.url;
     }
-    if (seen.has(key)) dupes.push(tab.id);
-    else seen.add(key);
+    if (seen.has(key)) {
+      // Keep the active tab, close the other
+      if (tab.active) {
+        dupes.push(seen.get(key));
+        seen.set(key, tab.id);
+      } else {
+        dupes.push(tab.id);
+      }
+    } else {
+      seen.set(key, tab.id);
+    }
   }
 
   if (dupes.length > 0) await chrome.tabs.remove(dupes);
@@ -604,7 +615,14 @@ function scheduleAutoGroup(hostname) {
     for (const hn of hostnames) {
       try {
         const matching = await chrome.tabs.query({ url: "*://" + hn + "/*" });
-        if (matching.length >= (settings.minTabsToGroup || 2)) {
+        const minTabs = settings.minTabsToGroup || 2;
+        // Also group if there's already an existing group for this hostname
+        const perWindow = groupCache.get(hn);
+        const hasExistingGroup = perWindow && perWindow.size > 0;
+        if (
+          matching.length >= minTabs ||
+          (hasExistingGroup && matching.length >= 1)
+        ) {
           await getOrCreateGroup(
             hn,
             matching.map((t) => t.id),
@@ -617,19 +635,37 @@ function scheduleAutoGroup(hostname) {
   }, 300);
 }
 
-// onCreated: new tabs rarely have a URL yet — onUpdated handles it
-chrome.tabs.onCreated.addListener(() => {});
-
 chrome.tabs.onUpdated.addListener((_tabId, changeInfo) => {
   if (!changeInfo.url || !changeInfo.url.startsWith("http")) return;
   const hostname = getHostname(changeInfo.url);
   if (hostname) scheduleAutoGroup(hostname);
 });
 
-// Refresh cache when a tab is closed (update group counts)
+// Refresh cache and update group titles when a tab is closed
 chrome.tabs.onRemoved.addListener((_tabId, removeInfo) => {
   if (removeInfo.isWindowClosing) return;
-  setTimeout(() => rebuildGroupCache(), 500);
+  setTimeout(async () => {
+    await rebuildGroupCache();
+    // Update all group titles with correct tab counts
+    try {
+      const allGroups = await chrome.tabGroups.query({});
+      for (const g of allGroups) {
+        const tabsInGroup = await chrome.tabs.query({ groupId: g.id });
+        let hostname = null;
+        for (const t of tabsInGroup) {
+          if (t.url && t.url.startsWith("http")) {
+            hostname = getHostname(t.url);
+            if (hostname) break;
+          }
+        }
+        if (hostname) {
+          await updateGroupTitle(g.id, hostname);
+        }
+      }
+    } catch {
+      /* groups may have been removed */
+    }
+  }, 500);
 });
 
 // ── Message handler ────────────────────────────────────────────────────

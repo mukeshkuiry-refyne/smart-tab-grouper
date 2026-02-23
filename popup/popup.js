@@ -7,7 +7,9 @@ function flash(msg, ok = true) {
   el.textContent = msg;
   el.className = "feedback show " + (ok ? "success" : "error");
   clearTimeout(feedbackTimer);
-  feedbackTimer = setTimeout(() => { el.className = "feedback"; }, 2200);
+  feedbackTimer = setTimeout(() => {
+    el.className = "feedback";
+  }, 2200);
 }
 
 function send(type, extra = {}) {
@@ -20,9 +22,15 @@ function send(type, extra = {}) {
 
 /* ── Color map for group dots ────────────────────────────────────────── */
 const COLOR_HEX = {
-  blue: "#4a9eff", red: "#ff5252", yellow: "#ffd740",
-  green: "#4caf50", pink: "#ff80ab", purple: "#b388ff",
-  cyan: "#4dd0e1", orange: "#ffab40", grey: "#90a4ae",
+  blue: "#4a9eff",
+  red: "#ff5252",
+  yellow: "#ffd740",
+  green: "#4caf50",
+  pink: "#ff80ab",
+  purple: "#b388ff",
+  cyan: "#4dd0e1",
+  orange: "#ffab40",
+  grey: "#90a4ae",
 };
 
 /* ── Stats ───────────────────────────────────────────────────────────── */
@@ -67,7 +75,7 @@ async function refreshGroups() {
     const label = document.createElement("span");
     label.className = "group-label";
     const cnt = counts.get(g.id) || 0;
-    label.textContent = (g.title || "?") + (cnt > 0 ? "" : "");
+    label.textContent = (g.title || "?") + (cnt > 0 ? " \u00b7 " + cnt : "");
     label.title = g.title || "";
 
     // Remove button
@@ -96,36 +104,63 @@ function refresh() {
 /* ── Button handlers ─────────────────────────────────────────────────── */
 $("btnGroupAll").addEventListener("click", async () => {
   const res = await send("GROUP_ALL_TABS");
-  if (res.error) { flash(res.error, false); return; }
+  if (res.error) {
+    flash(res.error, false);
+    return;
+  }
   flash(res.count > 0 ? "Grouped " + res.count + " tabs" : "Nothing to group");
   refresh();
 });
 
 $("btnGroupNew").addEventListener("click", async () => {
   const res = await send("GROUP_UNGROUPED_TABS");
-  if (res.error) { flash(res.error, false); return; }
-  flash(res.count > 0 ? "Grouped " + res.count + " new tabs" : "No new tabs to group");
+  if (res.error) {
+    flash(res.error, false);
+    return;
+  }
+  flash(
+    res.count > 0
+      ? "Grouped " + res.count + " new tabs"
+      : "No new tabs to group",
+  );
   refresh();
 });
 
 $("btnUngroupAll").addEventListener("click", async () => {
   const res = await send("UNGROUP_ALL_TABS");
-  if (res.error) { flash(res.error, false); return; }
-  flash(res.count > 0 ? "Ungrouped " + res.count + " tabs" : "No groups to remove");
+  if (res.error) {
+    flash(res.error, false);
+    return;
+  }
+  flash(
+    res.count > 0 ? "Ungrouped " + res.count + " tabs" : "No groups to remove",
+  );
   refresh();
 });
 
 $("btnSort").addEventListener("click", async () => {
   const res = await send("SORT_GROUPS");
-  if (res.error) { flash(res.error, false); return; }
-  flash(res.count > 0 ? "Sorted " + res.count + " groups" : "No groups to sort");
+  if (res.error) {
+    flash(res.error, false);
+    return;
+  }
+  flash(
+    res.count > 0 ? "Sorted " + res.count + " groups" : "No groups to sort",
+  );
   refresh();
 });
 
 $("btnDupes").addEventListener("click", async () => {
   const res = await send("CLOSE_DUPLICATES");
-  if (res.error) { flash(res.error, false); return; }
-  flash(res.count > 0 ? "Closed " + res.count + " duplicate(s)" : "No duplicates found");
+  if (res.error) {
+    flash(res.error, false);
+    return;
+  }
+  flash(
+    res.count > 0
+      ? "Closed " + res.count + " duplicate(s)"
+      : "No duplicates found",
+  );
   refresh();
 });
 
